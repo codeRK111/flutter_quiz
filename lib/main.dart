@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+import 'src/question_bank.dart';
 
 void main() => runApp(Quizzler());
 
@@ -25,6 +27,60 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Icon> resultbar = [];
+  Questions qBank = Questions();
+
+  void onPressed() {
+    setState(() {
+      qBank.resetIndex();
+      resultbar = [];
+      Navigator.pop(context);
+    });
+  }
+
+  void increaseIndex(bool type, BuildContext context) {
+    setState(() {
+      if (qBank.show()) {
+        if (qBank.getAnswer() == type) {
+          resultbar.add(Icon(
+            Icons.check,
+            color: Colors.green,
+          ));
+        } else {
+          resultbar.add(Icon(
+            Icons.close,
+            color: Colors.red,
+          ));
+        }
+      } else {
+        Alert(
+          context: context,
+          type: AlertType.success,
+          title: "Finished",
+          closeFunction: () {
+            setState(() {
+              qBank.resetIndex();
+              resultbar = [];
+            });
+          },
+          desc: "You have completed the challengr",
+          buttons: [
+            DialogButton(
+              child: Text(
+                "Restart",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+              onPressed: onPressed,
+              width: 120,
+            )
+          ],
+        ).show();
+      }
+      qBank.increaseIndex();
+    });
+  }
+
+  int index = 0;
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +93,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                qBank.getQuestion(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -62,6 +118,7 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked true.
+                increaseIndex(true, context);
               },
             ),
           ),
@@ -80,11 +137,15 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked false.
+                increaseIndex(false, context);
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: resultbar,
+        ),
       ],
     );
   }
